@@ -1,10 +1,14 @@
 const Promise = require('bluebird');
-
-const redis = Promise.promisifyAll(require('redis'));
+const redis = require('redis');
+Promise.promisifyAll(redis.RedisClient.prototype);
+Promise.promisifyAll(redis.Multi.prototype);
 const redisClient = redis.createClient();
 
 const processPost = (post, callback) => {
-  callback(null, [123, 111, 121]);
+  // get shape with fb id
+  // get lat lng with fb id
+  // get radius
+  callback(null, null);
 };
 
 const processPostAsync = Promise.promisify(processPost);
@@ -43,7 +47,7 @@ const workerJob = () => {
         console.log(err);
       });
   };
-  workerLoop();
+  // workerLoop();
 };
 
 // start the worker
