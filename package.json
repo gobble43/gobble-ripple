@@ -1,0 +1,44 @@
+{
+  "name": "gobble-ripple",
+  "version": "1.0.0",
+  "description": "[![Build Status](https://travis-ci.org/gobble43/gobble-ripple.svg?branch=master)](https://travis-ci.org/gobble43/gobble-ripple)",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "./node_modules/.bin/mocha --reporter spec ./test/*-spec.js",
+    "start": "NODE_ENV=development ./node_modules/.bin/nodemon server/master.js",
+    "lint": "./node_modules/.bin/eslint ./"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leoadelstein/gobble-ripple.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/leoadelstein/gobble-ripple/issues"
+  },
+  "homepage": "https://github.com/leoadelstein/gobble-ripple#readme",
+  "dependencies": {
+    "babel-polyfill": "^6.9.1",
+    "bluebird": "^3.4.1",
+    "body-parser": "^1.15.2",
+    "chai": "^3.5.0",
+    "dotenv": "^2.0.0",
+    "express": "^4.14.0",
+    "mocha": "^2.5.3",
+    "nodemon": "^1.9.2",
+    "redis": "^2.6.2",
+    "superagent": "^2.0.0",
+    "supertest": "^1.2.0"
+  },
+  "devDependencies": {
+    "eslint": "^2.13.0",
+    "eslint-config-airbnb": "^9.0.1",
+    "eslint-plugin-import": "^1.8.1",
+    "eslint-plugin-jsx-a11y": "^1.5.3",
+    "eslint-plugin-react": "^5.2.2"
+  }
+}
