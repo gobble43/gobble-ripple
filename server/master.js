@@ -17,10 +17,10 @@ const checkOnHTTPServer = () => {
       delete workers.httpServer;
     });
 
-    // redis cache of shapes for userId
-    // redis cache of lat lng for userId for currently logged in users
 
-    // {task: 'post', postId: 4333, userId: 4747 }
+    // {task: post, userId: 4323, postId: 4343}
+    // {task: location, userID: 2323, geocode: 32828832238}
+    // {task: shape, userId: 3232, shape: large-square}
     workers.httpServer.on('message', (message) => {
       console.log('master recieved message from http server', message);
       if (!message.task) {
@@ -29,7 +29,14 @@ const checkOnHTTPServer = () => {
       }
 
       if (message.task === 'post') {
+        console.log('adding a post');
         redisClient.lpush('posts', JSON.stringify(message));
+      } else if (message.task === 'location') {
+        console.log('adding a location');
+        redisClient.zadd('locations', message.geocode, message.userId);
+      } else if (message.task === 'shape') {
+        console.log('adding a shape');
+        redisClient.hset('shapes', message.userId, message.shape);
       }
     });
   }
