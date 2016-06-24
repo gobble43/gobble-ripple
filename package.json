@@ -1,0 +1,27 @@
+{
+  "name": "gobble-ripple",
+  "version": "1.0.0",
+  "description": "[![Build Status](https://travis-ci.org/gobble43/gobble-ripple.svg?branch=master)](https://travis-ci.org/gobble43/gobble-ripple)",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leoadelstein/gobble-ripple.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/leoadelstein/gobble-ripple/issues"
+  },
+  "homepage": "https://github.com/leoadelstein/gobble-ripple#readme",
+  "dependencies": {
+    "body-parser": "^1.15.2",
+    "express": "^4.14.0",
+    "nodemon": "^1.9.2"
+  }
+}
