@@ -10,10 +10,13 @@ if (process.env.NODE_ENV === 'development') {
 const express = require('express');
 
 const app = express();
+const http = require('http').Server(app);
+const io = require('./config/socket');
+io.makeSocketServer(http);
 
 require('./config/middleware.js')(app, express);
 require('./config/routes.js')(app, express);
 
-app.listen(process.env.PORT, () => {
+http.listen(process.env.PORT, () => {
   console.log(`${process.env.APP_NAME} is listening on port ${process.env.PORT}.`);
 });
