@@ -21,7 +21,11 @@
   "homepage": "https://github.com/leoadelstein/gobble-ripple#readme",
   "dependencies": {
     "body-parser": "^1.15.2",
+    "chai": "^3.5.0",
     "express": "^4.14.0",
-    "nodemon": "^1.9.2"
+    "mocha": "^2.5.3",
+    "nodemon": "^1.9.2",
+    "superagent": "^2.0.0",
+    "supertest": "^1.2.0"
   }
 }
