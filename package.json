@@ -22,6 +22,7 @@
   },
   "homepage": "https://github.com/leoadelstein/gobble-ripple#readme",
   "dependencies": {
+    "babel-polyfill": "^6.9.1",
     "bluebird": "^3.4.1",
     "body-parser": "^1.15.2",
     "chai": "^3.5.0",
