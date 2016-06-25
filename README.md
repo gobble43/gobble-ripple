@@ -55,6 +55,9 @@ $ npm test
 ├── /dist/                      # Public distribution folder
 │   ├── index.html              # Index page for testing
 │
+├── /lib/                       # Library
+│   ├── geo.js                  # Methods for geographical calculations such as geohashing
+│
 ├── /server/                    # Server source code
 │   ├── /httpServer/            # Express server
 │     ├── /config/              # Server configs

@@ -2,6 +2,24 @@
 <html>
 <head>
   <title>Gobble Ripple Test</title>
+  <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+  <script>
+    window.socket = io();
+    const userId = 151;
+    window.socket.updateLocation = function updateLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          window.socket.emit('update location', userId, lat, lng);
+        });
+      }
+    };
+    window.socket.updateShape = function updateShape() {
+      window.socket.emit('update shape', userId, 'large-square');
+    };
+
+  </script>
 </head>
 <body>
 
