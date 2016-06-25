@@ -4,10 +4,22 @@ Promise.promisifyAll(redis.RedisClient.prototype);
 Promise.promisifyAll(redis.Multi.prototype);
 const redisClient = redis.createClient();
 
+const geo = require('../../lib/geo.js');
+
+
 const processPost = (post, callback) => {
-  // get shape with fb id
-  // get lat lng with fb id
-  // get radius
+  // get users geocode
+  // decode it back to lat and lng
+
+  // find out what resolution the shape is
+  // (bottom range) encode users lat and lng at that resolution
+  // (top range) bottom range + 1
+  // search users with that range to get all possible users
+  // get lat and lng of every possible user and userId
+  // pass array of points of shape & all users
+  // return all userIds in shape
+  // add post to add users posts list
+
   callback(null, null);
 };
 
@@ -47,7 +59,7 @@ const workerJob = () => {
         console.log(err);
       });
   };
-  // workerLoop();
+  workerLoop();
 };
 
 // start the worker
