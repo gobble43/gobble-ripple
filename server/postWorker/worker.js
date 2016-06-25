@@ -20,7 +20,7 @@ const processPost = (post, callback) => {
   // return all userIds in shape
   // add post to add users posts list
 
-  callback(null, null);
+  callback(null, post);
 };
 
 const processPostAsync = Promise.promisify(processPost);
@@ -40,23 +40,19 @@ const workerJob = () => {
             .then((taskString) => {
               console.log(taskString);
               const task = JSON.parse(taskString);
-              processPostAsync(task)
-                .then((users) => {
-                  console.log('added post to these users list: ',
-                    users);
-                  workerLoop();
-                })
-                .catch((err) => {
-                  console.err(err);
-                });
+              return processPostAsync(task);
+            })
+            .then((users) => {
+              console.log('added post to these users list: ', users);
+              workerLoop();
             })
             .catch((err) => {
-              console.log(err);
+              console.error(err);
             });
         }
       })
       .catch((err) => {
-        console.log(err);
+        console.error(err);
       });
   };
   workerLoop();
