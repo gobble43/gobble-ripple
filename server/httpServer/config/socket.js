@@ -1,5 +1,5 @@
 const socketIO = require('socket.io');
-
+const geo = require('./geo.js');
 
 // Start the socket connection server-side
 const makeSocketServer = function socketServer(http) {
@@ -7,7 +7,7 @@ const makeSocketServer = function socketServer(http) {
 
   io.on('connection', (socket) => {
     const updateUserLocation = function updateUserLocation(userId, lat, lng) {
-      const geocode = 1010;
+      const geocode = geo.geoHash(lat, lng);
       process.send({ task: 'location', userId, geocode });
     };
 
