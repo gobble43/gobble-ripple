@@ -1,5 +1,5 @@
 const socketIO = require('socket.io');
-const geo = require('./geo.js');
+const geo = require('../../../lib/geo.js');
 
 // Start the socket connection server-side
 const makeSocketServer = function socketServer(http) {
