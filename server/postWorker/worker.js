@@ -6,10 +6,74 @@ const redisClient = redis.createClient();
 
 const geo = require('../../lib/geo.js');
 
+const getResolution = (size) => {
+  if (size === 'small') {
+    return 32;
+  } else if (size === 'medium') {
+    return 27;
+  } else if (size === 'large') {
+    return 26;
+  }
+  return 50;
+};
+
+const getShapePoints = (shape, center, size) => {
+  return [];
+};
+
+const getAllUsersInPoints = (points, users) => {
+  console.log('users in range: ', users);
+  return [151, 152];
+};
+
+const addPostToUser = (userId, post) => {
+  Promise.all([redisClient.lpushAsync(userId, post), redisClient.ltrim(userId, 0, 100)])
+    .then((results) => {
+      console.log(results);
+    })
+    .catch((err) => {
+      console.error(err);
+    });
+};
 
 const processPost = (post, callback) => {
-  // get users geocode
-  // decode it back to lat and lng
+  redisClient.hgetAsync('shapes', post.userId)
+    .then((shape) => {
+      // get users geocode
+      console.log(shape);
+      return Promise.all([shape, redisClient.zscoreAsync('locations', post.userId)]);
+    })
+    .then((results) => {
+      // decode it back to lat and lng
+      const postLocation = geo.decode(results[1]);
+      const size = results[0].split('-')[0];
+      const shape = results[0].split('-')[1];
+
+      const resolution = getResolution(size);
+      const shapePoints = getShapePoints(shape, postLocation, size);
+
+      let bottomRange = geo.hash(postLocation[0], postLocation[1], resolution);
+      let topRange = bottomRange + 1;
+      const diff = 50 - resolution;
+      for (let i = 0; i < diff; i++) {
+        bottomRange *= 2;
+        topRange *= 2;
+      }
+      console.log('bottom range', bottomRange);
+      console.log('top range', topRange);
+      return Promise.all([shapePoints,
+        redisClient.zrangebyscoreAsync('locations', bottomRange, topRange)]);
+    })
+    .then((results) => {
+      const affectedUsers = getAllUsersInPoints(results[0], results[1]);
+      callback(null, affectedUsers);
+      affectedUsers.forEach((user) => {
+        addPostToUser(user, post.postId);
+      });
+    })
+    .catch((err) => {
+      console.error(err);
+    });
 
   // find out what resolution the shape is
   // (bottom range) encode users lat and lng at that resolution
@@ -19,8 +83,6 @@ const processPost = (post, callback) => {
   // pass array of points of shape & all users
   // return all userIds in shape
   // add post to add users posts list
-
-  callback(null, post);
 };
 
 const processPostAsync = Promise.promisify(processPost);
