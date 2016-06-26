@@ -22,6 +22,7 @@ const getShapePoints = (shape, center, size) => {
 };
 
 const getAllUsersInPoints = (points, users) => {
+  console.log('users in range: ', users);
   return [151, 152];
 };
 
@@ -55,9 +56,11 @@ const processPost = (post, callback) => {
       let topRange = bottomRange + 1;
       const diff = 50 - resolution;
       for (let i = 0; i < diff; i++) {
-        bottomRange *= 10;
-        topRange *= 10;
+        bottomRange *= 2;
+        topRange *= 2;
       }
+      console.log('bottom range', bottomRange);
+      console.log('top range', topRange);
       return Promise.all([shapePoints,
         redisClient.zrangebyscoreAsync('locations', bottomRange, topRange)]);
     })
