@@ -8,6 +8,7 @@ const makeSocketServer = function socketServer(http) {
   io.on('connection', (socket) => {
     const updateUserLocation = function updateUserLocation(userId, lat, lng) {
       const geocode = geo.hash(lat, lng);
+      console.log('index.html lat, lng ', lat, lng);
       process.send({ task: 'location', userId, geocode });
     };
 
