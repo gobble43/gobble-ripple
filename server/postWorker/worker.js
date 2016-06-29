@@ -8,22 +8,96 @@ const geo = require('../../lib/geo.js');
 
 const getResolution = (size) => {
   if (size === 'small') {
-    return 32;
+    return 35; // 50m x 50m box
   } else if (size === 'medium') {
-    return 27;
+    return 30; // 300m x 300m box
   } else if (size === 'large') {
-    return 26;
+    return 25; // 2km x 2km box
   }
   return 50;
 };
 
+const addMetersToLatLng = (lng, dx, lat, dy) => {
+  const radiusOfEarth = 6371000;
+  const newLat = lat + (dy / radiusOfEarth) * (180 / Math.PI);
+  const newLng = lng + (dx / radiusOfEarth) * (180 / Math.PI / Math.cos(lat * Math.PI / 180));
+  return [newLat, newLng];
+};
+
 const getShapePoints = (shape, center, size) => {
-  return [];
+  const pointsArray = [];
+  let radius = 0;
+  if (size === 'small') {
+    radius = 25;
+  } else if (size === 'medium') {
+    radius = 150;
+  } else if (size === 'large') {
+    radius = 1000;
+  }
+  if (shape === 'square') {
+    // upper left
+    pointsArray.push(addMetersToLatLng(center[1], -radius, center[0], radius));
+    // upper right
+    pointsArray.push(addMetersToLatLng(center[1], radius, center[0], radius));
+    // bottom left
+    pointsArray.push(addMetersToLatLng(center[1], -radius, center[0], -radius));
+    // bottom right
+    pointsArray.push(addMetersToLatLng(center[1], radius, center[0], -radius));
+  } else if (shape === 'triangle') {
+    // upper right
+    pointsArray.push(addMetersToLatLng(center[1], 0, center[0], radius));
+    // bottom left
+    pointsArray.push(addMetersToLatLng(center[1], -radius, center[0], -radius));
+    // bottom right
+    pointsArray.push(addMetersToLatLng(center[1], radius, center[1], radius));
+  }
+  return pointsArray;
+};
+
+const cachePoly = (polyPoints) => {
+  const constant = [];
+  const multiple = [];
+  let j = polyPoints.length - 1;
+  for (let i = 0; i < polyPoints.length; i++) {
+    if (polyPoints[j][0] === polyPoints[i][0]) {
+      constant[i] = polyPoints[i][1];
+      multiple[i] = 0;
+    } else {
+      constant[i] = polyPoints[i][1] - (polyPoints[i][0] * polyPoints[j][1]) /
+        (polyPoints[j][0] - polyPoints[i][0]) + (polyPoints[i][0] * polyPoints[i][1]) /
+        (polyPoints[j][0] - polyPoints[i][0]);
+      multiple[i] = (polyPoints[j][1] - polyPoints[i][1]) / (polyPoints[j][0] - polyPoints[i][0]);
+    }
+    j = i;
+  }
+  return [constant, multiple];
+};
+
+const isUserInPoints = (user, points, constant, multiple) => {
+  let j = points.length - 1;
+  let inside = true;
+  const userLocation = geo.decode(user);
+  console.log('checking if user: ', userLocation);
+  for (let i = 0; i < points.length; i++) {
+    if ((points[i][0] < userLocation[0] && points[j][0] >= userLocation[0]
+      || points[j][0] < userLocation[0] && points[i][0] >= userLocation[0])) {
+      inside ^= (userLocation[0] * multiple[i] + constant[i] < userLocation[1]);
+    }
+    j = i;
+  }
+  return inside;
 };
 
 const getAllUsersInPoints = (points, users) => {
-  console.log('users in range: ', users);
-  return [151, 152];
+  const affectedUsers = [];
+  console.log('GET ALL USERS IN POINTS ', points, users);
+  const cashedPoly = cachePoly(points);
+  for (let i = 0; i < users.length; i += 2) {
+    if (isUserInPoints(users[i + 1], points, cashedPoly[0], cashedPoly[1])) {
+      affectedUsers.push(users[i]);
+    }
+  }
+  return affectedUsers;
 };
 
 const addPostToUser = (userId, post) => {
@@ -37,32 +111,38 @@ const addPostToUser = (userId, post) => {
 };
 
 const processPost = (post, callback) => {
+  console.log('post being processed: ', post);
   redisClient.hgetAsync('shapes', post.userId)
     .then((shape) => {
       // get users geocode
-      console.log(shape);
+      console.log('posts shape: ', shape);
       return Promise.all([shape, redisClient.zscoreAsync('locations', post.userId)]);
     })
     .then((results) => {
-      // decode it back to lat and lng
-      const postLocation = geo.decode(results[1]);
+      const postLocation = geo.decode(results[1], 50);
+      console.log('posts location: ', postLocation);
+
       const size = results[0].split('-')[0];
       const shape = results[0].split('-')[1];
 
       const resolution = getResolution(size);
+      console.log('posts resolution: ', resolution);
       const shapePoints = getShapePoints(shape, postLocation, size);
+      console.log('posts points: ', shapePoints);
 
       let bottomRange = geo.hash(postLocation[0], postLocation[1], resolution);
       let topRange = bottomRange + 1;
+
       const diff = 50 - resolution;
       for (let i = 0; i < diff; i++) {
         bottomRange *= 2;
         topRange *= 2;
       }
+
       console.log('bottom range', bottomRange);
       console.log('top range', topRange);
       return Promise.all([shapePoints,
-        redisClient.zrangebyscoreAsync('locations', bottomRange, topRange)]);
+        redisClient.zrangebyscoreAsync('locations', bottomRange, topRange, 'WITHSCORES')]);
     })
     .then((results) => {
       const affectedUsers = getAllUsersInPoints(results[0], results[1]);
@@ -74,15 +154,6 @@ const processPost = (post, callback) => {
     .catch((err) => {
       console.error(err);
     });
-
-  // find out what resolution the shape is
-  // (bottom range) encode users lat and lng at that resolution
-  // (top range) bottom range + 1
-  // search users with that range to get all possible users
-  // get lat and lng of every possible user and userId
-  // pass array of points of shape & all users
-  // return all userIds in shape
-  // add post to add users posts list
 };
 
 const processPostAsync = Promise.promisify(processPost);
