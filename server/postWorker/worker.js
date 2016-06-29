@@ -6,6 +6,7 @@ const redisClient = redis.createClient();
 
 const geo = require('../../lib/geo.js');
 
+// get geohahing bit length / resolution for given radius in meters
 const getResolution = (size) => {
   if (size === 'small') {
     return 35; // 50m x 50m box
@@ -24,6 +25,7 @@ const addMetersToLatLng = (lng, dx, lat, dy) => {
   return [newLat, newLng];
 };
 
+// get all points of a polygon bases on a center point size and shape
 const getShapePoints = (shape, center, size) => {
   const pointsArray = [];
   let radius = 0;
@@ -54,6 +56,7 @@ const getShapePoints = (shape, center, size) => {
   return pointsArray;
 };
 
+// used for optimization since we are using the shape set of points everytime
 const cachePoly = (polyPoints) => {
   const constant = [];
   const multiple = [];
@@ -73,11 +76,11 @@ const cachePoly = (polyPoints) => {
   return [constant, multiple];
 };
 
+// find if one user is inside the polygon
 const isUserInPoints = (user, points, constant, multiple) => {
   let j = points.length - 1;
   let inside = true;
   const userLocation = geo.decode(user);
-  console.log('checking if user: ', userLocation);
   for (let i = 0; i < points.length; i++) {
     if ((points[i][0] < userLocation[0] && points[j][0] >= userLocation[0]
       || points[j][0] < userLocation[0] && points[i][0] >= userLocation[0])) {
@@ -88,9 +91,9 @@ const isUserInPoints = (user, points, constant, multiple) => {
   return inside;
 };
 
+// find all the users inside the points of a certain polygon
 const getAllUsersInPoints = (points, users) => {
   const affectedUsers = [];
-  console.log('GET ALL USERS IN POINTS ', points, users);
   const cashedPoly = cachePoly(points);
   for (let i = 0; i < users.length; i += 2) {
     if (isUserInPoints(users[i + 1], points, cashedPoly[0], cashedPoly[1])) {
@@ -111,25 +114,32 @@ const addPostToUser = (userId, post) => {
 };
 
 const processPost = (post, callback) => {
-  console.log('post being processed: ', post);
+  console.log('post currently being processed: ', post);
+  // need the post's shape
   redisClient.hgetAsync('shapes', post.userId)
     .then((shape) => {
-      // get users geocode
       console.log('posts shape: ', shape);
+      // need the post's lat & lng
       return Promise.all([shape, redisClient.zscoreAsync('locations', post.userId)]);
     })
     .then((results) => {
+      // decode geohash to get post's lat lng
       const postLocation = geo.decode(results[1], 50);
-      console.log('posts location: ', postLocation);
+      console.log('post\'s location: ', postLocation);
 
+      // get size and shape of post's area
       const size = results[0].split('-')[0];
       const shape = results[0].split('-')[1];
 
-      const resolution = getResolution(size);
-      console.log('posts resolution: ', resolution);
+      // get all the points of the polygon in lat & lng
       const shapePoints = getShapePoints(shape, postLocation, size);
-      console.log('posts points: ', shapePoints);
+      console.log('post\'s points: ', shapePoints);
 
+      // get the resolution we need to hash the post's lat and lng to
+      const resolution = getResolution(size);
+      console.log('post\'s resolution: ', resolution);
+
+      // get the range of geocodes to get all near by users in a certain radius of the post
       let bottomRange = geo.hash(postLocation[0], postLocation[1], resolution);
       let topRange = bottomRange + 1;
 
@@ -141,10 +151,12 @@ const processPost = (post, callback) => {
 
       console.log('bottom range', bottomRange);
       console.log('top range', topRange);
+
       return Promise.all([shapePoints,
         redisClient.zrangebyscoreAsync('locations', bottomRange, topRange, 'WITHSCORES')]);
     })
     .then((results) => {
+      // from all the users in the area, find which ones are actually in the polygon
       const affectedUsers = getAllUsersInPoints(results[0], results[1]);
       callback(null, affectedUsers);
       affectedUsers.forEach((user) => {
@@ -163,6 +175,7 @@ const workerJob = () => {
     console.log('recieved message from the master', message);
   });
 
+  // process posts one at a time
   const workerLoop = () => {
     redisClient.llenAsync('posts')
       .then((length) => {
@@ -181,6 +194,7 @@ const workerJob = () => {
             })
             .catch((err) => {
               console.error(err);
+              workerLoop();
             });
         }
       })
