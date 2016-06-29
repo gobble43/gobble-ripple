@@ -5,6 +5,9 @@
   <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
   <script>
     window.socket = io();
+    window.socket.on('new ripple', (message) => {
+      console.log(message);
+    });
     const userId = 151;
     window.socket.updateLocation = function updateLocation() {
       if (navigator.geolocation) {
