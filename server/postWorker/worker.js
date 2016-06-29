@@ -127,6 +127,10 @@ const processPost = (post, callback) => {
       const postLocation = geo.decode(results[1], 50);
       console.log('post\'s location: ', postLocation);
 
+      // send new ripple to redis queue so socket server can distribute
+      // the post to all the connected sockets
+      redisClient.lpushAsync('ripples', results[0], postLocation);
+
       // get size and shape of post's area
       const size = results[0].split('-')[0];
       const shape = results[0].split('-')[1];
