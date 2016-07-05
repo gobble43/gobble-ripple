@@ -8,7 +8,7 @@
     window.socket.on('new ripple', (message) => {
       console.log(message);
     });
-    const userId = 151;
+    const userId = 1766499916942108;
     window.socket.updateLocation = function updateLocation() {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition((position) => {
@@ -21,7 +21,9 @@
     window.socket.updateShape = function updateShape() {
       window.socket.emit('update shape', userId, 'large-square');
     };
-
+    window.socket.updateShape('large square');
+    window.socket.updateLocation();
+    setInterval(window.socket.updateLocation(), 30000);
   </script>
 </head>
 <body>

@@ -56,7 +56,7 @@ const getShapePoints = (shape, center, size) => {
   return pointsArray;
 };
 
-// used for optimization since we are using the shape set of points everytime
+// used for optimization since we are using the same set of points everytime
 const cachePoly = (polyPoints) => {
   const constant = [];
   const multiple = [];
@@ -104,9 +104,14 @@ const getAllUsersInPoints = (points, users) => {
 };
 
 const addPostToUser = (userId, post) => {
-  Promise.all([redisClient.lpushAsync(userId, post), redisClient.ltrim(userId, 0, 100)])
+  const maxSavedPosts = 10;
+  Promise.all([redisClient.saddAsync(userId, post), redisClient.scardAsync(userId)])
     .then((results) => {
       console.log(results);
+      // keep number of ripple posts under max limit
+      if (results[1] > maxSavedPosts) {
+        redisClient.spopAsync(userId, results[1] - maxSavedPosts);
+      }
     })
     .catch((err) => {
       console.error(err);
