@@ -134,7 +134,8 @@ const processPost = (post, callback) => {
 
       // send new ripple to redis queue so socket server can distribute
       // the post to all the connected sockets
-      redisClient.lpushAsync('ripples', results[0], postLocation);
+      redisClient.lpushAsync('ripples',
+        JSON.stringify({ lat: postLocation[0], lng: postLocation[1], shape: results[0] }));
 
       // get size and shape of post's area
       const size = results[0].split('-')[0];
