@@ -9,5 +9,7 @@ module.exports = {
     "no-undef": 0, // allow undefined 'describe' function from mocha
     "global-require": 0, // needed for cluster architecture
     "no-param-reassign": 0,
+    "arrow-body-style": 0,
+    "max-len": 0,
   }
 };
