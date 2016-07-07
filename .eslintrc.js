@@ -11,5 +11,6 @@ module.exports = {
     "no-param-reassign": 0,
     "arrow-body-style": 0,
     "max-len": 0,
+    "new-cap": 0,
   }
 };

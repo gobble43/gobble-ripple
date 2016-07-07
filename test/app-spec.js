@@ -91,7 +91,7 @@ describe('Gobble Ripple', () => {
         redisClient.smembersAsync(2)
           .then((posts) => {
             done();
-            expect(posts.indexOf('50')).to.equal(0);
+            expect(posts.indexOf('50')).to.not.equal(-1);
           })
           .catch((err) => {
             console.error(err);
