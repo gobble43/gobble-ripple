@@ -39,10 +39,11 @@ $ npm test
 ```
 
 ## Tech
-> node / express server
-> node clusters for workers
-> redis for worker queues
-> multer / imagemin for file uploading and compression
+> Node / Express server
+> Node clusters for master worker setup
+> Redis for worker queues
+> Socket.io for realtime communication between server and clients
+> Travis, Mocha & Chai for testing
 
 ## Database Schema
 > Add schema for application db here
@@ -57,15 +58,19 @@ $ npm test
 │
 ├── /lib/                       # Library
 │   ├── geo.js                  # Methods for geographical calculations such as geohashing
+│   ├── collision.js            # Methods for polygon collison
 │
 ├── /server/                    # Server source code
 │   ├── /httpServer/            # Express server
 │     ├── /config/              # Server configs
 │       ├── middleware.js       # Server middleware
 │       ├── routes.js           # Server routes
+│       ├── socket.js           # Socket server
+│     ├── /controllers/         # Http server controllers
+│       ├── postController.js   # Functions for interacting with posts in the database
 │     ├── server.js             # Start the server
 │   ├── /postWorker/            # Post worker
-│       ├── worker.js           # Start worker
+│       ├── worker.js           # Proccesses new posts comming in a calculates ripple collisons
 │   ├── master.js               # Start entire server, with post worker and upload worker clusters
 │
 ├── /test/                      # Testing folder

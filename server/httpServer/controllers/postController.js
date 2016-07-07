@@ -16,7 +16,7 @@ const fetch = require('isomorphic-fetch');
 const gobbleDBUrl = process.env.GOBBLE_DB_URL;
 
 module.exports = {
-  getPosts: (userId, startingPoint, res) => {
+  getPosts: (userId, res) => {
     redisClient.smembersAsync(userId)
       .then((posts) => {
         fetch(`${gobbleDBUrl}/db/postsById?posts=${JSON.stringify(posts)}`, {
