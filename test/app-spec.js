@@ -27,21 +27,21 @@ describe('Gobble Ripple', () => {
           return done();
         });
     });
-    it('/api/post get request should return status code 422 for bad parameters', (done) => {
+    it('/api/post get request should return status code 500 for bad parameters', (done) => {
       request(appUrl)
         .get('/api/post')
         .set('Accept', 'application/json')
-        .expect(422)
+        .expect(500)
         .end((err) => {
           if (err) return done(err);
           return done();
         });
     });
-    it('/api/post post request should return status code 422 for bad parameters', (done) => {
+    it('/api/post post request should return status code 500 for bad parameters', (done) => {
       request(appUrl)
         .post('/api/post')
         .set('Accept', 'application/json')
-        .expect(422)
+        .expect(500)
         .end((err) => {
           if (err) return done(err);
           return done();
