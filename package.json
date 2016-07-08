@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "./node_modules/.bin/mocha --reporter spec ./test/*-spec.js",
-    "start": "NODE_ENV=development ./node_modules/.bin/nodemon server/master.js",
+    "start": "NODE_ENV=development ./node_modules/.bin/nodemon server/start.js",
     "lint": "./node_modules/.bin/eslint ./"
   },
   "repository": {
