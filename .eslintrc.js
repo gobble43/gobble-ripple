@@ -12,5 +12,7 @@ module.exports = {
     "arrow-body-style": 0,
     "max-len": 0,
     "new-cap": 0,
+    "consistent-return": 0,
+    "no-else-return": 0,
   }
 };
