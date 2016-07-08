@@ -29,7 +29,7 @@ module.exports = {
           },
         })
         .then(response => {
-          return fetchUtils.checkStatus(response, next);
+          return fetchUtils.checkStatus(response);
         })
         .then(response => {
           res.end(JSON.stringify(response));

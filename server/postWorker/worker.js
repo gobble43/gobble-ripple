@@ -18,7 +18,7 @@ const addPostToUser = (userId, post) => {
       }
     })
     .catch((err) => {
-      console.error(err);
+      console.error(`Error adding ripple post to user\'s redis list: ${err}`);
     });
 };
 
@@ -67,7 +67,7 @@ const processPost = (post, callback) => {
       callback(null, [affectedUsers, post.postId]);
     })
     .catch((err) => {
-      console.error(err);
+      console.error(`Error processing post: ${post}, Error: ${err}`);
       callback(err, null);
     });
 };
