@@ -4,6 +4,8 @@ Promise.promisifyAll(redis.RedisClient.prototype);
 Promise.promisifyAll(redis.Multi.prototype);
 const redisClient = redis.createClient();
 
+const fetchUtils = require('./../config/fetch-utils.js');
+
 // Load environment variables
 const dotenv = require('dotenv');
 if (process.env.NODE_ENV === 'development') {
@@ -16,7 +18,7 @@ const fetch = require('isomorphic-fetch');
 const gobbleDBUrl = process.env.GOBBLE_DB_URL;
 
 module.exports = {
-  getPosts: (userId, res) => {
+  getPosts: (userId, res, next) => {
     redisClient.smembersAsync(userId)
       .then((posts) => {
         fetch(`${gobbleDBUrl}/db/postsById?posts=${JSON.stringify(posts)}`, {
@@ -27,20 +29,17 @@ module.exports = {
           },
         })
         .then(response => {
-          console.log(`response status ${response.status}`);
-          return response.json();
+          return fetchUtils.checkStatus(response, next);
         })
         .then(response => {
           res.end(JSON.stringify(response));
         })
-        .catch(err => {
-          console.err(err);
-          res.end(err);
+        .catch(() => {
+          return next(new Error(`Error getting ripple posts from gobble-db for user: ${userId}`));
         });
       })
-      .catch((err) => {
-        console.error(err);
-        res.end(err);
+      .catch(() => {
+        return next(new Error(`Error getting ripple posts ids for user: ${userId}`));
       });
   },
 };
