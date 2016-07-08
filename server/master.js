@@ -1,8 +1,7 @@
-require('babel-polyfill');
 const cluster = require('cluster');
+const redis = require('redis');
 
 const workers = {};
-let redisClient;
 
 const checkOnHTTPServer = () => {
   if (workers.httpServer === undefined) {
@@ -62,25 +61,16 @@ const checkOnPostWorker = () => {
 
 const masterJob = () => {
   console.log('master job started');
-
-  const redis = require('redis');
-  redisClient = redis.createClient();
-  redisClient.on('connect', () => {
-    console.log('connected to redis');
-
-    const masterLoop = () => {
-      checkOnHTTPServer();
-      checkOnPostWorker();
-    };
-    masterLoop();
-    setInterval(masterLoop, 2000);
-  });
+  const masterLoop = () => {
+    checkOnHTTPServer();
+    checkOnPostWorker();
+  };
+  masterLoop();
+  setInterval(masterLoop, 2000);
 };
 
-if (cluster.isMaster) {
+redisClient = redis.createClient();
+redisClient.on('connect', () => {
+  console.log('connected to redis');
   masterJob();
-} else if (process.env.ROLE === 'http server') {
-  require('./httpServer/server.js');
-} else if (process.env.ROLE === 'post worker') {
-  require('./postWorker/worker.js');
-}
+});
